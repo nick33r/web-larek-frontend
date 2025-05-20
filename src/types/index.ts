@@ -1,32 +1,30 @@
 // --------- Модель данных ---------
-// Интерфейс модели данных еденицы товара
+// Интерфейс объекта товара
 
-interface IItem {
-  id: string
-  title: string
-  price: number
-  image: string
-  description: string
-  category: string
+export interface IItem {
+  id: string,
+  title: string,
+  price: number | null,
+  image: string,
+  description: string,
+  category: string,
 }
 
 // Интерфейс модели данных заказа
 
-type PaymentMethod = "online" | "on_delivery"
+export type PaymentMethod = "online" | "on_delivery"
 
-interface IOrder {
+export interface IOrder {
   payment: PaymentMethod,
   email: string,
   phone: string | number,
   address: string,
-  total: number | null,
-  items: string[],
 }
 
 // --------- Типы представления ---------
 // Представление страницы
 
-interface IPage {
+export interface IPage {
   counter: number;
   catalog: HTMLElement[];
   locked: boolean;
@@ -34,19 +32,19 @@ interface IPage {
 
 // Модальное окно
 
-interface IModalData {
+export interface IModalData {
   content: HTMLElement;
 }
 
 // Интерфейс для представления карточек товаров
 
-type Category = "другое" | "софт-скил" | "дополнительное" | "кнопка" | "хард-скил";
+export type Category = "другое" | "софт-скил" | "дополнительное" | "кнопка" | "хард-скил";
 
-interface ICardActions {
+export interface ICardActions {
   onClick: (event: MouseEvent) => void;
 }
 
-interface ICard<T> {
+export interface ICard<T> {
   title: string;
   price: number;
   description?: string | string[];
@@ -56,24 +54,24 @@ interface ICard<T> {
 
 // Интерфейс для представления форм 
 
-interface IFormState {
+export interface IFormState {
   valid: boolean;
   errors: string[];
 }
 
 // Интерфейсы для представления окна успешного заказа
 
-interface ISuccess {
+export interface ISuccess {
   total: number;
 }
 
-interface ISuccessActions {
+export interface ISuccessActions {
   onClick: () => void;
 }
 
 // Интерфейс для представления корзины
 
-interface IBasketView {
+export interface IBasketView {
   items: HTMLElement[];
   total: number;
 }
