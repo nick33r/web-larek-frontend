@@ -3,11 +3,7 @@ import {IItem} from "../../types/index";
 export abstract class Items<IItem> {
   items: IItem[] = [];
 
-  constructor(data?: Partial<IItem>) {
-    Object.assign(this, data);
-  }
-
-  getItem(id: string): IItem {
+  getItem(id: string): IItem | undefined {
     return this.items.find(item => item.id === id);
   }
 
@@ -24,7 +20,9 @@ export class BaseItems extends Items<IItem> {}
 
 export class BasketItems extends Items<IItem> {
   toggleItem(item: IItem): void {
-    this.items = this.items.filter(i => i.id !== item.id);
+    this.checkItem(item.id) ?
+    this.items = this.items.filter(i => i.id !== item.id) :
+    this.items.push(item);
   }
 
   getTotalPrice(): number | null {
