@@ -12,7 +12,7 @@ export interface IItem {
 
 // Интерфейс модели данных заказа
 
-export type PaymentMethod = "online" | "on_delivery"
+export type PaymentMethod = "online" | "cash"
 
 export interface IOrder {
   payment: PaymentMethod,
@@ -26,7 +26,7 @@ export interface IOrder {
 
 export interface IPage {
   counter: number;
-  catalog: HTMLElement[];
+  gallery: HTMLElement[];
   locked: boolean;
 }
 
