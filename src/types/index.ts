@@ -21,6 +21,13 @@ export interface IOrder {
   address: string,
 }
 
+// Интерфейс объекта заказа для API
+
+export interface IOrderApi extends IOrder {
+  total: number | null,
+  items: string[],
+}
+
 // --------- Типы представления ---------
 // Представление страницы
 

@@ -9,6 +9,7 @@ export class Card extends Component<ICard<Category>> {
   protected _image: HTMLImageElement;
   protected _category: HTMLElement;
   protected _button: HTMLButtonElement;
+  protected _index: HTMLElement;
 
   constructor(container: HTMLElement, actions?: ICardActions) {
     super(container);
@@ -19,6 +20,7 @@ export class Card extends Component<ICard<Category>> {
     this._image = container.querySelector(`.card__image`);
     this._category = container.querySelector(`.card__category`);
     this._button = container.querySelector(`.card__button`);
+    this._index = container.querySelector(`.basket__item-index`);
 
     if (actions?.onClick) {
         if (this._button) {
@@ -90,8 +92,13 @@ export class Card extends Component<ICard<Category>> {
         break;
 
       default:
+        // по умолчанию другое
         this.toggleClass(this._category, 'card__category_other', true);
         break;
     }
+  }
+
+  set index(value: number) {
+    this.setText(this._index, String(value));
   }
 }
