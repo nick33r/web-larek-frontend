@@ -1,19 +1,27 @@
 import {IItem} from "../../types/index";
+import { IEvents } from "../base/events";
 
-export abstract class Items<IItem> {
-  items: IItem[] = [];
+export abstract class Items<T extends IItem> {
+  protected items: T[] = [];
 
-  getItem(id: string): IItem | undefined {
+  constructor(protected events: IEvents) { }
+
+  getItem(id: string): T | undefined {
     return this.items.find(item => item.id === id);
   }
 
-  getItems(): IItem[] {
+  getItems(): T[] {
     return this.items;
   }
 
-  setItems(items: IItem[]): void {
+  setItems(items: T[]): void {
     this.items = items;
+    this.emitChanges('items:changed');
   }
+
+  emitChanges(event: string, payload?: object) {
+    this.events.emit(event, payload ?? {});
+}
 }
 
 export class BaseItems extends Items<IItem> {}

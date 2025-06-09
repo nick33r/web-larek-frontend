@@ -1,7 +1,7 @@
 import { IModalData } from "../../types";
 import { ensureElement } from "../../utils/utils";
 import { IEvents } from "../base/events";
-import { Component } from "./component";
+import { Component } from "./Component";
 
 export class Modal extends Component<IModalData> {
   protected _closeButton: HTMLButtonElement;

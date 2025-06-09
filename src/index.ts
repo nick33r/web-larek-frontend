@@ -1,12 +1,87 @@
 import './scss/styles.scss';
 // !! Удалить из документации описание того, что классы модели данных наследуют Model
 
-// TODO: Тестируем модель данных:
-import { BaseItems, BasketItems } from './components/model/Items';
-import { IItem } from './types';
-import { Api } from './components/base/api';
-import { API_URL, CDN_URL } from './utils/constants';
 import { LarekAPI } from './components/base/LarekAPI';
+import { API_URL, CDN_URL } from './utils/constants';
+import { BaseItems, BasketItems } from './components/model/Items';
+import { Category, IItem } from './types';
+import { cloneTemplate, ensureElement } from './utils/utils';
+import { EventEmitter } from './components/base/events';
+import { OrderData } from './components/model/OrderData';
+import { Page } from './components/view/Page';
+import { Modal } from './components/view/Modal';
+import { Card } from './components/view/Card';
+
+const events = new EventEmitter();
+const api = new LarekAPI();
+
+// Мониторинг всех событий - потом удалить!!!!!!
+events.onAll(({ eventName, data }) => {
+	console.log(eventName, data);
+})
+
+// Все шаблоны
+const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
+const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
+const cardBasketTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
+const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
+const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
+const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
+const successTemplate = ensureElement<HTMLTemplateElement>('#success');
+
+// Данные
+const catalogData = new BaseItems(events);
+const basketData = new BasketItems(events);
+const orderData = new OrderData();
+
+// Глобальные контейнеры
+const page = new Page(document.body, events);
+const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
+
+// 
+
+events.on('items:changed', () => {
+	page.gallery = catalogData.getItems().map(item => {
+		const card = new Card(cloneTemplate(cardCatalogTemplate), {
+			onClick: () => events.emit('card:select', item)
+		});
+		return card.render({
+			category: item.category as Category, // TODO: Убрать as !!!
+			title: item.title,
+			image: `./images${item.image}`,
+			price: item.price,
+		})
+	});
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+api.getProductList()
+	.then(catalogData.setItems.bind(catalogData))
+	.catch(error => console.error(error))
 
 // TODO: Тестируем Api
 
@@ -15,23 +90,23 @@ import { LarekAPI } from './components/base/LarekAPI';
 // const get = api.get('/product/');
 // console.log(get);
 
-const larekApi = new LarekAPI();
+// const larekApi = new LarekAPI();
 
-const getProductList = larekApi.getProductList();
+// const getProductList = larekApi.getProductList();
 
-console.log(getProductList);
+// console.log(getProductList);
 
-larekApi.postOrder({
-	payment: "online",
-  email: "test@test.ru",
-  phone: "+71234567890",
-  address: "Spb Vosstania 1",
-  total: 2200,
-  items: [
-        "854cef69-976d-4c2a-a18c-2aa45046c390",
-        "c101ab44-ed99-4a54-990d-47aa2bb4e7d9",
-  ]
-});
+// larekApi.postOrder({
+// 	payment: "online",
+//   email: "test@test.ru",
+//   phone: "+71234567890",
+//   address: "Spb Vosstania 1",
+//   total: 2200,
+//   items: [
+//         "854cef69-976d-4c2a-a18c-2aa45046c390",
+//         "c101ab44-ed99-4a54-990d-47aa2bb4e7d9",
+//   ]
+// });
 
 
 // TODO: Тестируем компоненты

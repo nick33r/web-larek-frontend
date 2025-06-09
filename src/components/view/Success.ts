@@ -1,6 +1,6 @@
 import { ISuccess, ISuccessActions } from "../../types";
 import { ensureElement } from "../../utils/utils";
-import { Component } from "./component";
+import { Component } from "./Component";
 
 export class Success extends Component<ISuccess> {
   protected _close: HTMLElement;

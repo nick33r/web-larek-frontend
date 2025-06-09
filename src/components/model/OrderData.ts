@@ -1,7 +1,7 @@
 import { IItem, IOrder, PaymentMethod } from "../../types";
 
 
-class OrderData {
+export class OrderData {
   protected order: IOrder = {
     payment: "online",
     email: "",
