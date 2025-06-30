@@ -50,7 +50,7 @@ export class Form<T> extends Component<IFormState> {
   }
 }
 
-class OrderDeliveryForm extends Form<IOrder> {
+export class OrderDeliveryForm extends Form<IOrder> {
   constructor(container: HTMLFormElement, events: IEvents) {
     super(container, events);
   }
@@ -64,7 +64,7 @@ class OrderDeliveryForm extends Form<IOrder> {
   }
 }
 
-class OrderContactForm extends Form<IOrder> {
+export class OrderContactForm extends Form<IOrder> {
   constructor(container: HTMLFormElement, events: IEvents) {
     super(container, events);
   }

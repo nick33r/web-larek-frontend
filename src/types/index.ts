@@ -1,13 +1,15 @@
 // --------- Модель данных ---------
 // Интерфейс объекта товара
 
+export type Category = "другое" | "софт-скил" | "дополнительное" | "кнопка" | "хард-скил";
+
 export interface IItem {
   id: string,
   title: string,
   price: number | null,
   image: string,
   description: string,
-  category: string,
+  category: Category,
 }
 
 // Интерфейс модели данных заказа
@@ -19,6 +21,13 @@ export interface IOrder {
   email: string,
   phone: string | number,
   address: string,
+}
+
+// Интерфейс полученных данных от API
+
+export interface IApiGet {
+  total: number;
+  items: IItem[];
 }
 
 // Интерфейс объекта заказа для API
@@ -45,18 +54,19 @@ export interface IModalData {
 
 // Интерфейс для представления карточек товаров
 
-export type Category = "другое" | "софт-скил" | "дополнительное" | "кнопка" | "хард-скил";
-
 export interface ICardActions {
   onClick: (event: MouseEvent) => void;
 }
 
 export interface ICard<T> {
+  id: string;
   title: string;
   price: number;
   description?: string | string[];
   image?: string;
   category?: T;
+  index?: number;
+  button?: string;
 }
 
 // Интерфейс для представления форм 

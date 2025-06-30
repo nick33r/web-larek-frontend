@@ -29,7 +29,7 @@ export class Card extends Component<ICard<Category>> {
             container.addEventListener('click', actions.onClick);
         }
     }
-}
+  }
 
   set id(value: string) {
     this.container.dataset.id = value;
@@ -65,6 +65,10 @@ export class Card extends Component<ICard<Category>> {
 
   set image(value: string) {
     this.setImage(this._image, value, this.title);
+  }
+
+  set button(value: string) {
+    this.setText(this._button, value);
   }
 
   set category(value: Category) {

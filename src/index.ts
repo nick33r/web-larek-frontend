@@ -4,13 +4,14 @@ import './scss/styles.scss';
 import { LarekAPI } from './components/base/LarekAPI';
 import { API_URL, CDN_URL } from './utils/constants';
 import { BaseItems, BasketItems } from './components/model/Items';
-import { Category, IItem } from './types';
+import { Category, IApiGet, IItem } from './types';
 import { cloneTemplate, ensureElement } from './utils/utils';
 import { EventEmitter } from './components/base/events';
 import { OrderData } from './components/model/OrderData';
 import { Page } from './components/view/Page';
 import { Modal } from './components/view/Modal';
 import { Card } from './components/view/Card';
+import { Basket } from './components/view/Basket';
 
 const events = new EventEmitter();
 const api = new LarekAPI();
@@ -28,6 +29,7 @@ const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
 const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
 const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
 const successTemplate = ensureElement<HTMLTemplateElement>('#success');
+const modalContainer = ensureElement<HTMLElement>('#modal-container');
 
 // Данные
 const catalogData = new BaseItems(events);
@@ -36,9 +38,30 @@ const orderData = new OrderData();
 
 // Глобальные контейнеры
 const page = new Page(document.body, events);
-const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
+const modal = new Modal(modalContainer, events);
+const basket = new Basket(cloneTemplate(basketTemplate), events);
 
-// 
+
+function renderBasket() {
+	return basket.render({
+			items: basketData.getItems().map(item => {
+					const card = new Card(cloneTemplate(cardBasketTemplate), {
+							onClick: () => events.emit('card:toggle', item)
+					});
+					return card.render({
+							id: item.id,
+							title: item.title,
+							price: item.price,
+							index: basketData.getItems().indexOf(item) + 1
+					});
+			}),
+			total: basketData.getTotalPrice()
+	});
+};
+
+// ---------- Обработка событий ----------
+
+// Изменились элементы каталога
 
 events.on('items:changed', () => {
 	page.gallery = catalogData.getItems().map(item => {
@@ -46,12 +69,55 @@ events.on('items:changed', () => {
 			onClick: () => events.emit('card:select', item)
 		});
 		return card.render({
-			category: item.category as Category, // TODO: Убрать as !!!
+			id: item.id,
+			category: item.category,
 			title: item.title,
-			image: `./images${item.image}`,
+			image: `${CDN_URL}${item.image}`,
 			price: item.price,
 		})
 	});
+});
+
+events.on('card:select', (item: IItem) => {
+	const cardPreview = new Card(cloneTemplate(cardPreviewTemplate), {
+		onClick: () => {
+			events.emit('card:toggle', item)
+			events.emit('card:select', item)
+		}
+	});
+
+	modal.render({
+		content: cardPreview.render({
+			id: item.id,
+			category: item.category,
+			description: item.description,
+			title: item.title,
+			image: `${CDN_URL}${item.image}`,
+			price: item.price,
+			button: basketData.checkItem(item.id) ? 'Удалить' : 'В корзину'
+		})
+	});
+});
+
+events.on('card:toggle', (item: IItem) => {
+	basketData.toggleItem(item);
+	renderBasket();
+});
+
+events.on('basket:changed', () => {
+	page.counter = basketData.getItems().length;
+});
+
+events.on('basket:open', () => {
+	modal.render({
+		content: renderBasket()
+	});
+});
+
+events.on('order:open', () => {
+	modal.render({
+		
+	})
 })
 
 
@@ -67,21 +133,19 @@ events.on('items:changed', () => {
 
 
 
+events.on('modal:open', () => {
+	page.locked = true;
+});
 
-
-
-
-
-
-
-
-
-
-
+events.on('modal:close', () => {
+	page.locked = false;
+});
 
 api.getProductList()
-	.then(catalogData.setItems.bind(catalogData))
-	.catch(error => console.error(error))
+	.then((data: IApiGet) => {
+		catalogData.setItems(data.items);
+	})
+	.catch(error => console.log(error))
 
 // TODO: Тестируем Api
 
@@ -196,6 +260,8 @@ api.getProductList()
 // 		price: 1000,
 // 	},
 // ];
+
+// catalogData.setItems(mockItems);
 
 // const catalog = new BaseItems();
 

@@ -21,7 +21,7 @@ export abstract class Items<T extends IItem> {
 
   emitChanges(event: string, payload?: object) {
     this.events.emit(event, payload ?? {});
-}
+  }
 }
 
 export class BaseItems extends Items<IItem> {}
@@ -31,6 +31,8 @@ export class BasketItems extends Items<IItem> {
     this.checkItem(item.id) ?
     this.items = this.items.filter(i => i.id !== item.id) :
     this.items.push(item);
+
+    this.emitChanges('basket:changed');
   }
 
   getTotalPrice(): number | null {
@@ -49,5 +51,6 @@ export class BasketItems extends Items<IItem> {
 
   clear(): void {
     this.items = [];
+    this.emitChanges('basket:changed');
   }
 }
