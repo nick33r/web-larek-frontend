@@ -4,7 +4,7 @@ import './scss/styles.scss';
 import { LarekAPI } from './components/base/LarekAPI';
 import { API_URL, CDN_URL } from './utils/constants';
 import { BaseItems, BasketItems } from './components/model/Items';
-import { Category, IApiGet, IItem } from './types';
+import { Category, IApiGet, IItem, IOrderApi, ISuccessAPI, PaymentMethod } from './types';
 import { cloneTemplate, ensureElement } from './utils/utils';
 import { EventEmitter } from './components/base/events';
 import { OrderData } from './components/model/OrderData';
@@ -12,6 +12,8 @@ import { Page } from './components/view/Page';
 import { Modal } from './components/view/Modal';
 import { Card } from './components/view/Card';
 import { Basket } from './components/view/Basket';
+import { OrderContactForm, OrderDeliveryForm } from './components/view/Form';
+import { Success } from './components/view/Success';
 
 const events = new EventEmitter();
 const api = new LarekAPI();
@@ -40,6 +42,14 @@ const orderData = new OrderData();
 const page = new Page(document.body, events);
 const modal = new Modal(modalContainer, events);
 const basket = new Basket(cloneTemplate(basketTemplate), events);
+const deliveryForm = new OrderDeliveryForm(cloneTemplate(orderTemplate), events);
+const contactForm = new OrderContactForm(cloneTemplate(contactsTemplate), events);
+const success = new Success(cloneTemplate(successTemplate), {
+		onClick: () => {
+			events.emit('modal:close')
+			modal.close();
+		}
+})
 
 
 function renderBasket() {
@@ -57,6 +67,18 @@ function renderBasket() {
 			}),
 			total: basketData.getTotalPrice()
 	});
+};
+
+function getOrderData(): IOrderApi {
+	const { payment, email, phone, address } = orderData.orderData;
+	return {
+		payment,
+		email,
+		phone,
+		address,
+		total: basketData.getTotalPrice(),
+		items: basketData.getItemsId()
+	}
 };
 
 // ---------- Обработка событий ----------
@@ -86,6 +108,13 @@ events.on('card:select', (item: IItem) => {
 		}
 	});
 
+	let buttonState = 'В корзину';
+	if (item.price === null) {
+		buttonState = 'Не для продажи';
+	} else if (basketData.checkItem(item.id)) {
+		buttonState = 'Удалить';
+	}
+
 	modal.render({
 		content: cardPreview.render({
 			id: item.id,
@@ -94,7 +123,7 @@ events.on('card:select', (item: IItem) => {
 			title: item.title,
 			image: `${CDN_URL}${item.image}`,
 			price: item.price,
-			button: basketData.checkItem(item.id) ? 'Удалить' : 'В корзину'
+			button: buttonState
 		})
 	});
 });
@@ -116,13 +145,86 @@ events.on('basket:open', () => {
 
 events.on('order:open', () => {
 	modal.render({
-		
+		content: deliveryForm.render({
+			valid: true,
+			errors: ""
+		})
 	})
+});
+
+events.on('order.payment:change', (button: HTMLButtonElement) => {
+	orderData.payment = button.name as PaymentMethod;
+});
+
+events.on(/^order\..*:change/, () => {
+	deliveryForm.valid = true;
+	deliveryForm.errors = "";
+});
+
+events.on('order:submit', () => {
+	orderData.address = deliveryForm.address;
+	const { payment, address } = orderData.orderData;
+
+	let error = "";
+	if (!payment && !address) {
+    error = "Выберите способ оплаты и укажите адрес доставки";
+  } else if (!payment) {
+    error = "Выберите способ оплаты";
+  } else if (!address) {
+    error = "Необходимо указать адрес";
+  }
+
+	const formValid = payment && address;
+
+	modal.render({
+		content: formValid
+			? contactForm.render({ valid: true, errors: "" })
+			: deliveryForm.render({ valid: false, errors: error })
+	})
+});
+
+events.on(/^contacts\..*:change/, () => {
+	contactForm.valid = true;
+	contactForm.errors = "";
+});
+
+events.on('contacts:submit', () => {
+	orderData.email = contactForm.email;
+	orderData.phone = contactForm.phone;
+	const { email, phone } = orderData.orderData;
+
+	let error = "";
+	if (!email && !phone) {
+		error = "Укажите ваш email и телефон";
+	} else if (!email) {
+		error = "Необходимо указать ваш email";
+	} else if (!phone) {
+		error = "Необходимо указать ваш телефон";
+	}
+
+	const formValid = orderData.validateOrder();
+	contactForm.orderPending(formValid);
+
+	!formValid
+		? modal.render({
+				content: contactForm.render({ valid: false, errors: error })
+	})
+		: api.postOrder(getOrderData())
+			.then((data: ISuccessAPI) => {
+				contactForm.orderPending(false);
+				modal.render({
+					content: success.render({
+						total: data.total
+					})
+				});
+				basketData.clear();
+			})
+			.catch((error) => {
+				contactForm.orderPending(false);
+				contactForm.errors = "Не получилось сделать заказ - попробуйте позже";
+				console.log(error);
+			})
 })
-
-
-
-
 
 
 

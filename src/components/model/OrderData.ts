@@ -3,7 +3,7 @@ import { IItem, IOrder, PaymentMethod } from "../../types";
 
 export class OrderData {
   protected order: IOrder = {
-    payment: "online",
+    payment: undefined,
     email: "",
     phone: "",
     address: "",
@@ -30,12 +30,18 @@ export class OrderData {
   }
 
   validateOrder(): boolean {
-    return 
+    const { payment, address, email, phone } = this.order;
+    return (
+      payment !== undefined &&
+      address !== "" &&
+      email !== "" &&
+      phone !== ""
+    );
   }
 
   clearOrder(): void {
     this.order = {
-      payment: "online",
+      payment: undefined,
       email: "",
       phone: "",
       address: "",

@@ -51,29 +51,84 @@ export class Form<T> extends Component<IFormState> {
 }
 
 export class OrderDeliveryForm extends Form<IOrder> {
+  protected _paymentCardButton: HTMLButtonElement;
+  protected _paymentCashButton: HTMLButtonElement;
+  protected _addressInput: HTMLInputElement;
+
   constructor(container: HTMLFormElement, events: IEvents) {
     super(container, events);
+
+    this._paymentCardButton = container.card;
+    this._paymentCashButton = container.cash;
+    this._addressInput = container.address;
+
+    this._paymentCardButton.addEventListener('click', () => {
+        this.events.emit('order.payment:change', this._paymentCardButton);
+        this.toggleClass(this._paymentCardButton, 'button_alt-active', true);
+        this.toggleClass(this._paymentCashButton, 'button_alt-active', false);
+    });
+    this._paymentCashButton.addEventListener('click', () => {
+        this.events.emit('order.payment:change', this._paymentCashButton);
+        this.toggleClass(this._paymentCardButton, 'button_alt-active', false);
+        this.toggleClass(this._paymentCashButton, 'button_alt-active', true);
+    });
   }
 
   set payment(value: PaymentMethod) {
-    
+    switch (value) {
+      case 'card':
+        this._paymentCardButton.click();
+        break;
+      case 'cash':
+        this._paymentCashButton.click();
+        break;
+      default:
+        this.toggleClass(this._paymentCardButton, 'button_alt-active', false);
+        this.toggleClass(this._paymentCashButton, 'button_alt-active', false);
+        break;
+    }
   }
 
   set address(value: string) {
-    (this.container.elements.namedItem('address') as HTMLInputElement).value = value;
+    this._addressInput.value = value;
+  }
+
+  get address(): string {
+    return this._addressInput.value;
   }
 }
 
 export class OrderContactForm extends Form<IOrder> {
+  protected _emailInput: HTMLInputElement;
+  protected _phoneInput: HTMLInputElement;
+
   constructor(container: HTMLFormElement, events: IEvents) {
     super(container, events);
+
+    this._emailInput = container.email;
+    this._phoneInput = container.phone;
   }
 
   set email(value: string) {
-    (this.container.elements.namedItem('email') as HTMLInputElement).value = value;
+    this._emailInput.value = value;
+  }
+
+  get email(): string {
+    return this._emailInput.value;
   }
 
   set phone(value: string) {
-    (this.container.elements.namedItem('phone') as HTMLInputElement).value = value;
+    this._phoneInput.value = value;
+  }
+
+  get phone(): string {
+    return this._phoneInput.value;
+  }
+
+  orderPending(value: boolean) {
+    this._emailInput.disabled = value;
+    this._phoneInput.disabled = value;
+    this._submit.disabled = value;
+    this._submit.textContent = value ? 'Обработка...' : 'Оплатить';
   }
 }

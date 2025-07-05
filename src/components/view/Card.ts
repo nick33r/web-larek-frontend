@@ -69,6 +69,9 @@ export class Card extends Component<ICard<Category>> {
 
   set button(value: string) {
     this.setText(this._button, value);
+    if (value === 'Не для продажи') {
+      this.setDisabled(this._button, true);
+    }
   }
 
   set category(value: Category) {

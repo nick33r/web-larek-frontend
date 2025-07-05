@@ -14,7 +14,7 @@ export interface IItem {
 
 // Интерфейс модели данных заказа
 
-export type PaymentMethod = "online" | "cash"
+export type PaymentMethod = "card" | "cash" | undefined;
 
 export interface IOrder {
   payment: PaymentMethod,
@@ -33,8 +33,12 @@ export interface IApiGet {
 // Интерфейс объекта заказа для API
 
 export interface IOrderApi extends IOrder {
-  total: number | null,
-  items: string[],
+  payment: PaymentMethod,
+  email: string,
+  phone: string | number,
+  address: string,
+  total: number,
+  items: string[]
 }
 
 // --------- Типы представления ---------
@@ -73,7 +77,7 @@ export interface ICard<T> {
 
 export interface IFormState {
   valid: boolean;
-  errors: string[];
+  errors: string;
 }
 
 // Интерфейсы для представления окна успешного заказа
@@ -90,5 +94,10 @@ export interface ISuccessActions {
 
 export interface IBasketView {
   items: HTMLElement[];
+  total: number;
+}
+
+export interface ISuccessAPI {
+  id: string;
   total: number;
 }
