@@ -97,6 +97,8 @@ export interface IBasketView {
   total: number;
 }
 
+// Интерфейс ответа сервера об успешном заказе
+
 export interface ISuccessAPI {
   id: string;
   total: number;

@@ -1,4 +1,4 @@
-import { IItem, IOrder, PaymentMethod } from "../../types";
+import { IOrder, PaymentMethod } from "../../types";
 
 
 export class OrderData {
@@ -27,6 +27,11 @@ export class OrderData {
 
   get orderData(): IOrder {
     return this.order;
+  }
+
+  validateDeliveryData(): boolean {
+    const { payment, address } = this.order;
+    return payment !== undefined && address !== "";
   }
 
   validateOrder(): boolean {

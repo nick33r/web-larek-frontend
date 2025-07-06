@@ -28,9 +28,11 @@ export class BaseItems extends Items<IItem> {}
 
 export class BasketItems extends Items<IItem> {
   toggleItem(item: IItem): void {
-    this.checkItem(item.id) ?
-    this.items = this.items.filter(i => i.id !== item.id) :
-    this.items.push(item);
+    if (item.price === null) return;
+
+    this.checkItem(item.id)
+    ? this.items = this.items.filter(i => i.id !== item.id)
+    : this.items.push(item);
 
     this.emitChanges('basket:changed');
   }
@@ -40,14 +42,14 @@ export class BasketItems extends Items<IItem> {
   }
 
   getItemsId(): string[] {
-    return this.items.map(item => item.id);
+    return this.items
+      .filter(item => item.price !== null)
+      .map(item => item.id);
   }
 
   checkItem(id: string): boolean {
     return this.items.some(item => item.id === id);
   }
-
-  // deleteItem(id: string): void { }
 
   clear(): void {
     this.items = [];
