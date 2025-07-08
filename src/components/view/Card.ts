@@ -1,8 +1,8 @@
 import { Category, ICard, ICardActions } from "../../types";
 import { ensureElement } from "../../utils/utils";
-import { Component } from "./Component";
+import { Component } from "../base/Component";
 
-export class Card extends Component<ICard<Category>> { 
+export class Card extends Component<ICard> { 
   protected _title: HTMLElement;
   protected _price: HTMLElement;
   protected _description: HTMLElement;
@@ -43,7 +43,7 @@ export class Card extends Component<ICard<Category>> {
     if (value === null) {
       this.setText(this._price, 'Бесценно');
     } else {
-      this.setText(this._price, value);
+      this.setText(this._price, `${value} синапсов`);
     }
   }
 

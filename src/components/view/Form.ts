@@ -1,7 +1,7 @@
 import { IFormState, IOrder, PaymentMethod } from "../../types";
 import { ensureElement } from "../../utils/utils";
 import { IEvents } from "../base/events";
-import { Component } from "./Component";
+import { Component } from "../base/Component";
 
 export class Form<T> extends Component<IFormState> {
   protected _submit: HTMLButtonElement;
@@ -64,23 +64,21 @@ export class OrderDeliveryForm extends Form<IOrder> {
 
     this._paymentCardButton.addEventListener('click', () => {
         this.events.emit('order.payment:change', this._paymentCardButton);
-        this.toggleClass(this._paymentCardButton, 'button_alt-active', true);
-        this.toggleClass(this._paymentCashButton, 'button_alt-active', false);
     });
     this._paymentCashButton.addEventListener('click', () => {
         this.events.emit('order.payment:change', this._paymentCashButton);
-        this.toggleClass(this._paymentCardButton, 'button_alt-active', false);
-        this.toggleClass(this._paymentCashButton, 'button_alt-active', true);
     });
   }
 
   set payment(value: PaymentMethod) {
     switch (value) {
       case 'card':
-        this._paymentCardButton.click();
+        this.toggleClass(this._paymentCardButton, 'button_alt-active', true);
+        this.toggleClass(this._paymentCashButton, 'button_alt-active', false);
         break;
       case 'cash':
-        this._paymentCashButton.click();
+        this.toggleClass(this._paymentCardButton, 'button_alt-active', false);
+        this.toggleClass(this._paymentCashButton, 'button_alt-active', true);
         break;
       default:
         this.toggleClass(this._paymentCardButton, 'button_alt-active', false);

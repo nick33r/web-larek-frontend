@@ -13,6 +13,10 @@ export class OrderData {
     this.order.payment = payment;
   }
 
+  get payment(): PaymentMethod {
+    return this.order.payment;
+  }
+
   set email(email: string) {
     this.order.email = email;
   }

@@ -62,13 +62,13 @@ export interface ICardActions {
   onClick: (event: MouseEvent) => void;
 }
 
-export interface ICard<T> {
+export interface ICard {
   id: string;
   title: string;
   price: number;
   description?: string | string[];
   image?: string;
-  category?: T;
+  category?: Category;
   index?: number;
   button?: string;
 }

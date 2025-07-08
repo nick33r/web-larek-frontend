@@ -3,7 +3,7 @@ import './scss/styles.scss';
 import { LarekAPI } from './components/base/LarekAPI';
 import { CDN_URL } from './utils/constants';
 import { BaseItems, BasketItems } from './components/model/Items';
-import { IApiGet, IItem, IOrderApi, ISuccessAPI, PaymentMethod } from './types';
+import { IApiGet, IItem, ISuccessAPI, PaymentMethod } from './types';
 import { cloneTemplate, ensureElement } from './utils/utils';
 import { EventEmitter } from './components/base/events';
 import { OrderData } from './components/model/OrderData';
@@ -18,9 +18,9 @@ const events = new EventEmitter();
 const api = new LarekAPI();
 
 // Мониторинг всех событий - для отладки (чтобы включить - нужно раскомментировать)
-// events.onAll(({ eventName, data }) => {
-// 	console.log(eventName, data);
-// })
+events.onAll(({ eventName, data }) => {
+	console.log(eventName, data);
+});
 
 // Все шаблоны
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
@@ -49,37 +49,6 @@ const success = new Success(cloneTemplate(successTemplate), {
 			modal.close();
 		}
 });
-
-// Повторяющаяся функция рендера корзины
-function renderBasket() {
-	return basket.render({
-			items: basketData.getItems().map(item => {
-					const card = new Card(cloneTemplate(cardBasketTemplate), {
-							onClick: () => events.emit('card:toggle', item)
-					});
-					return card.render({
-							id: item.id,
-							title: item.title,
-							price: item.price,
-							index: basketData.getItems().indexOf(item) + 1
-					});
-			}),
-			total: basketData.getTotalPrice()
-	});
-};
-
-// Функция получения данных о заказе для отправки на сервер
-function getOrderData(): IOrderApi {
-	const { payment, email, phone, address } = orderData.orderData;
-	return {
-		payment,
-		email,
-		phone,
-		address,
-		total: basketData.getTotalPrice(),
-		items: basketData.getItemsId()
-	}
-};
 
 // ---------- Обработка событий ----------
 
@@ -133,20 +102,33 @@ events.on('card:select', (item: IItem) => {
 
 events.on('card:toggle', (item: IItem) => {
 	basketData.toggleItem(item);
-	renderBasket();
 });
 
 // Изменились элементы в корзине
 
 events.on('basket:changed', () => {
 	page.counter = basketData.getItems().length;
+	basket.render({
+		items: basketData.getItems().map(item => {
+				const card = new Card(cloneTemplate(cardBasketTemplate), {
+						onClick: () => events.emit('card:toggle', item)
+				});
+				return card.render({
+						id: item.id,
+						title: item.title,
+						price: item.price,
+						index: basketData.getItems().indexOf(item) + 1
+				});
+		}),
+		total: basketData.getTotalPrice()
+	});
 });
 
 // Нажали на значок корзины
 
 events.on('basket:open', () => {
 	modal.render({
-		content: renderBasket()
+		content: basket.render()
 	});
 });
 
@@ -165,13 +147,16 @@ events.on('order:open', () => {
 
 events.on('order.payment:change', (button: HTMLButtonElement) => {
 	orderData.payment = button.name as PaymentMethod;
+	deliveryForm.payment = orderData.payment;
 });
 
 // Переключили способ оплаты или изменили значение инпута в первой форме
 
 events.on(/^order\..*:change/, () => {
-	deliveryForm.valid = true;
-	deliveryForm.errors = "";
+	if (orderData.validateDeliveryData()) {
+		deliveryForm.valid = true;
+		deliveryForm.errors = "";
+	}
 });
 
 // Нажали на кнопку отправки первой формы
@@ -210,7 +195,7 @@ events.on(/^contacts\..*:change/, () => {
 events.on('contacts:submit', () => {
 	orderData.email = contactForm.email;
 	orderData.phone = contactForm.phone;
-	const { email, phone } = orderData.orderData;
+	const { payment, address, email, phone } = orderData.orderData;
 
 	let error = "";
 	if (!email && !phone) {
@@ -225,7 +210,14 @@ events.on('contacts:submit', () => {
 	contactForm.orderPending(formValid);
 
 	formValid
-		? api.postOrder(getOrderData())
+		? api.postOrder({
+				payment,
+				email,
+				phone,
+				address,
+				items: basketData.getItemsId(),
+				total: basketData.getTotalPrice()
+		})
 			.then((data: ISuccessAPI) => {
 				contactForm.orderPending(false);
 				modal.render({
