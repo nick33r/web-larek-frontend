@@ -18,9 +18,9 @@ const events = new EventEmitter();
 const api = new LarekAPI();
 
 // Мониторинг всех событий - для отладки (чтобы включить - нужно раскомментировать)
-events.onAll(({ eventName, data }) => {
-	console.log(eventName, data);
-});
+// events.onAll(({ eventName, data }) => {
+// 	console.log(eventName, data);
+// });
 
 // Все шаблоны
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
@@ -153,63 +153,37 @@ events.on('order.payment:change', (button: HTMLButtonElement) => {
 // Переключили способ оплаты или изменили значение инпута в первой форме
 
 events.on(/^order\..*:change/, () => {
-	if (orderData.validateDeliveryData()) {
-		deliveryForm.valid = true;
-		deliveryForm.errors = "";
-	}
+	orderData.address = deliveryForm.address;
+	deliveryForm.valid = orderData.validateDeliveryData();
+	deliveryForm.errors = "";
 });
 
 // Нажали на кнопку отправки первой формы
 
 events.on('order:submit', () => {
-	orderData.address = deliveryForm.address;
-	const { payment, address } = orderData.orderData;
-
-	let error = "";
-	if (!payment && !address) {
-    error = "Выберите способ оплаты и укажите адрес доставки";
-  } else if (!payment) {
-    error = "Выберите способ оплаты";
-  } else if (!address) {
-    error = "Необходимо указать адрес";
-  }
-
-	const formValid = payment && address;
-
 	modal.render({
-		content: formValid
-			? contactForm.render({ valid: orderData.validateOrder(), errors: "" })
-			: deliveryForm.render({ valid: false, errors: error })
+		content: orderData.validateDeliveryData()
+			? contactForm.render({ valid: orderData.validateContactsData(), errors: "" })
+			: deliveryForm.render({ valid: false, errors: "Выберите способ оплаты и укажите адрес доставки" })
 	})
 });
 
 // Изменили значение любого инпута во второй форме
 
 events.on(/^contacts\..*:change/, () => {
-	contactForm.valid = true;
+	orderData.email = contactForm.email;
+	orderData.phone = contactForm.phone;
+	contactForm.valid = orderData.validateContactsData();
 	contactForm.errors = "";
 });
 
 // Нажали на кнопку отправки второй формы
 
 events.on('contacts:submit', () => {
-	orderData.email = contactForm.email;
-	orderData.phone = contactForm.phone;
 	const { payment, address, email, phone } = orderData.orderData;
+	contactForm.orderPending(orderData.validateOrder());
 
-	let error = "";
-	if (!email && !phone) {
-		error = "Укажите ваш email и телефон";
-	} else if (!email) {
-		error = "Необходимо указать ваш email";
-	} else if (!phone) {
-		error = "Необходимо указать ваш телефон";
-	}
-
-	const formValid = orderData.validateOrder();
-	contactForm.orderPending(formValid);
-
-	formValid
+	orderData.validateOrder()
 		? api.postOrder({
 				payment,
 				email,
@@ -233,7 +207,7 @@ events.on('contacts:submit', () => {
 				console.log(error);
 			})
 		: modal.render({
-				content: contactForm.render({ valid: false, errors: error })
+				content: contactForm.render({ valid: false, errors: "Укажите ваш email и телефон" })
 	})
 });
 

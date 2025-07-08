@@ -38,6 +38,11 @@ export class OrderData {
     return payment !== undefined && address !== "";
   }
 
+  validateContactsData(): boolean {
+    const { email, phone } = this.order;
+    return email !== "" && phone !== "";
+  }
+
   validateOrder(): boolean {
     const { payment, address, email, phone } = this.order;
     return (
